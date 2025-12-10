@@ -1,0 +1,40 @@
+system:
+  gpu_id: 0  # Device selection for GPU usage (0 for first GPU)
+  seed: 42  # Random seed for reproducibility
+  log_level: "INFO"  # Logging verbosity level (DEBUG, INFO, WARNING, ERROR)
+
+model:
+  model_path: "models/custom_model.pt"  # Path to trained YOLO model weights
+  confidence_threshold: 0.5  # Minimum confidence for detection filtering (0.0-1.0)
+
+inference:
+  dpi: 300  # DPI for PDF rasterization, preserving architectural detail
+  slice_height: 640  # SAHI tile height matching YOLO input size
+  slice_width: 640  # SAHI tile width matching YOLO input size
+  overlap_ratio: 0.2  # Tile overlap ratio (0.0-0.5) to prevent split objects
+  max_megapixels: 200  # Memory safety threshold for GPU processing
+
+training:
+  model_architecture: 'yolov8'  # YOLO architecture variant: yolov8, yolo11
+  model_variant: 'nano'  # Model size variant: nano, small, medium, large, xlarge
+  hyperparameters:
+    epochs: 50  # Number of complete passes through training dataset
+    batch_size: 16  # Number of samples per training batch
+    img_size: 640  # Input resolution for YOLO model (640x640 pixels)
+    learning_rate: 0.001  # Step size for optimizer updates
+    optimizer: "Adam"  # Optimization algorithm for training
+    patience: 10  # Early stopping: stop if no improvement after N epochs
+    device: "0"  # GPU device selection ('0' for first GPU, 'cpu' for CPU)
+  augmentation:
+    hsv_h: 0.015  # Hue adjustment range (0.0-1.0)
+    hsv_s: 0.7  # Saturation adjustment range (0.0-1.0)
+    hsv_v: 0.4  # Value/brightness adjustment range (0.0-1.0)
+    degrees: 0.0  # Rotation range in degrees
+    translate: 0.1  # Translation range (0.0-1.0)
+    scale: 0.5  # Scaling range (0.0-1.0)
+    shear: 0.0  # Shear range in degrees
+    perspective: 0.0  # Perspective distortion range (0.0-1.0)
+    flipud: 0.0  # Vertical flip probability (0.0-1.0)
+    fliplr: 0.5  # Horizontal flip probability (0.0-1.0)
+    mosaic: 1.0  # Mosaic augmentation probability (0.0-1.0)
+    mixup: 0.0  # Mixup augmentation probability (0.0-1.0)

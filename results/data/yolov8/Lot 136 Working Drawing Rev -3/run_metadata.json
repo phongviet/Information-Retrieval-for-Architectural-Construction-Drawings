@@ -1,0 +1,57 @@
+{
+  "timestamp": "2025-12-03T20:47:21.724523",
+  "input_pdf": "data/test_data/Lot 136 Working Drawing Rev -3.pdf",
+  "configuration": {
+    "system": {
+      "gpu_id": 0,
+      "seed": 42,
+      "log_level": "INFO"
+    },
+    "model": {
+      "model_path": "runs/train/train6/weights/best.pt",
+      "confidence_threshold": 0.5
+    },
+    "inference": {
+      "dpi": 300,
+      "slice_height": 640,
+      "slice_width": 640,
+      "overlap_ratio": 0.2,
+      "max_megapixels": 200
+    },
+    "training": {
+      "hyperparameters": {
+        "epochs": 50,
+        "batch_size": 16,
+        "img_size": 640,
+        "learning_rate": 0.001,
+        "optimizer": "Adam",
+        "patience": 10,
+        "device": "0"
+      },
+      "augmentation": {
+        "hsv_h": 0.015,
+        "hsv_s": 0.7,
+        "hsv_v": 0.4,
+        "degrees": 0.0,
+        "translate": 0.1,
+        "scale": 0.5,
+        "shear": 0.0,
+        "perspective": 0.0,
+        "flipud": 0.0,
+        "fliplr": 0.5,
+        "mosaic": 1.0,
+        "mixup": 0.0
+      }
+    }
+  },
+  "detection_summary": {
+    "total_pages": 14,
+    "class_counts": {
+      "wall": 376,
+      "window": 41,
+      "door": 30
+    },
+    "error_pages": 0
+  },
+  "output_files": []
+}

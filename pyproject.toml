@@ -1,0 +1,20 @@
+# Black formatter configuration for code quality consistency
+# Run 'black .' to format all Python files
+# Run 'black --check .' to validate formatting without changes
+# Run 'black src/' to format specific directory
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+    | \.venv
+    | venv
+    | env
+    | build
+    | dist
+    | \.egg-info
+)/
+'''

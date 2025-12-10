@@ -1,0 +1,10 @@
+ultralytics
+sahi
+PyMuPDF
+opencv-python
+pandas
+tqdm
+pytest
+black
+pyyaml
+

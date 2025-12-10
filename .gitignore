@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+venv/
+env/
+.env
+.venv/
+.apm/
+.github
+
+# ML artifacts
+runs/
+models/*.pt
+data/output/
+*.log
+data/floortest3.1.v1-data.yolov8/
+models/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*~
+.pytest_cache/
+/data/
