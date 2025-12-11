@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-12-10T12:32:00.961425",
+  "timestamp": "2025-12-11T15:51:05.089413",
   "input_pdf": "data/test_data/Lot 136 Working Drawing Rev -3.pdf",
   "configuration": {
     "system": {
@@ -8,7 +8,7 @@
       "log_level": "INFO"
     },
     "model": {
-      "model_path": "runs/train/train51/weights/best.pt",
+      "model_path": "runs/train/train3/weights/best.pt",
       "confidence_threshold": 0.5
     },
     "inference": {
@@ -19,7 +19,7 @@
       "max_megapixels": 200
     },
     "training": {
-      "model_architecture": "yolov8",
+      "model_architecture": "yolo11",
       "model_variant": "nano",
       "hyperparameters": {
         "epochs": 50,
@@ -49,16 +49,16 @@
   "detection_summary": {
     "total_pages": 14,
     "class_counts": {
-      "wall": 357,
-      "window": 37,
-      "door": 5
+      "door": 35,
+      "wall": 361,
+      "window": 36
     },
     "error_pages": 0
   },
   "output_files": [],
   "model_architecture": {
-    "architecture": "yolov8",
-    "variant": "unknown",
+    "architecture": "yolo11",
+    "variant": "nano",
     "identifier": "unknown",
     "detected_from": "unknown"
   }

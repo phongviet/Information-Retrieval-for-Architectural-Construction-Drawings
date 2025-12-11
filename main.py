@@ -55,6 +55,10 @@ def main():
             # Detection mode
             if args.model:
                 config.model['model_path'] = args.model
+            elif not config.model.get('model_path'):
+                # Default to models/custom_model.pt if not specified
+                config.model['model_path'] = 'models/custom_model.pt'
+                logger.info("No model_path specified, using default: models/custom_model.pt")
 
             # Merge config sections for pipeline (flatten nested structure)
             pipeline_config = {

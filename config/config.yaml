@@ -4,7 +4,10 @@ system:
   log_level: "INFO"  # Logging verbosity level (DEBUG, INFO, WARNING, ERROR)
 
 model:
-  model_path: "models/custom_model.pt"  # Path to trained YOLO model weights
+  model_path: "runs/train/train3/weights/best.pt"  # Path to trained model (used for detection only, ignored during training)
+  # Training mode: Ignores this, uses model_architecture + model_variant below
+  # Detection mode: Uses this path (or defaults to models/custom_model.pt if not found)
+  # CLI override: python main.py detect --model path/to/model.pt --input file.pdf
   confidence_threshold: 0.5  # Minimum confidence for detection filtering (0.0-1.0)
 
 inference:
@@ -15,7 +18,7 @@ inference:
   max_megapixels: 200  # Memory safety threshold for GPU processing
 
 training:
-  model_architecture: 'yolov8'  # YOLO architecture variant: yolov8, yolo11
+  model_architecture: 'yolo11'  # YOLO architecture variant: yolov8, yolo11
   model_variant: 'nano'  # Model size variant: nano, small, medium, large, xlarge
   hyperparameters:
     epochs: 50  # Number of complete passes through training dataset

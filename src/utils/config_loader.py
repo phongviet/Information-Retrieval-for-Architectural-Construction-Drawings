@@ -1,5 +1,4 @@
 import yaml
-import os
 import logging
 from src.training.model_selector import ModelArchitectureSelector, SUPPORTED_ARCHITECTURES
 
@@ -64,10 +63,9 @@ class ConfigLoader:
         if not (0.0 <= conf <= 1.0):
             raise ValueError(f"confidence_threshold must be between 0.0 and 1.0, got {conf}")
 
-        # Verify model_path exists if specified
-        model_path = self.model.get('model_path')
-        if model_path and not os.path.exists(model_path):
-            raise FileNotFoundError(f"Model path does not exist: {model_path}")
+        # Note: model_path is optional - only required for inference mode, not for training
+        # Training uses pretrained weights via ModelArchitectureSelector
+        # Validation of model_path existence is deferred to inference pipeline
 
         # Validate positive numeric parameters
         dpi = self.inference.get('dpi', 300)

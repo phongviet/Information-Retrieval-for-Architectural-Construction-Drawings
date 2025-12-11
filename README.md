@@ -92,6 +92,9 @@ python main.py detect --input floor_plan.pdf --output results/
 ```
 Unified workflow produces CSV statistics, annotated images with bounding boxes, and metadata.
 
+> **💡 Pro Tip:** The same `config.yaml` works for BOTH training and detection - no editing needed!  
+> The system automatically uses the right settings based on the mode. See [`docs/NO_EDITING_CONFIG.md`](docs/NO_EDITING_CONFIG.md)
+
 ### Debug Mode Example
 Enable SAHI tile visualization for parameter tuning:
 ```bash
@@ -147,13 +150,21 @@ ls runs/train/*/weights/last.pt
 
 **Resume from Specific Checkpoint:**
 ```bash
-python main.py train --data data/floortest3.1.v1-data.yolov8/data.yaml --resume runs/train/train6/weights/last.pt
+# Resume training - preserves optimizer state (Adam parameters, learning rate, etc.)
+python main.py train --resume runs/train/train6/weights/last.pt --data data/floortest3.1.v1-data.yolov8/data.yaml
 ```
 
 **Best Practices:**
-- Resume uses the same hyperparameters from the checkpoint
-- Don't specify `--epochs`, `--batch-size`, or architecture when resuming (they're loaded from checkpoint)
-- The best model is automatically copied to `models/custom_model.pt` after training completes
+- ✅ Resume preserves **all optimizer state** (Adam momentum, learning rate, epoch counter)
+- ✅ Only specify `--resume` and `--data` when resuming
+- ❌ Don't specify `--epochs`, `--batch-size`, `--architecture`, or `--variant` (loaded from checkpoint)
+- ✅ The best model is automatically copied to `models/custom_model.pt` after training completes
+- 📖 See [`docs/RESUME_TRAINING_FIX.md`](docs/RESUME_TRAINING_FIX.md) for detailed resume training guide
+
+**Configuration Note:**
+- `model_path` in `config.yaml` is **only required for detection mode**, not for training
+- Training uses pretrained weights via `model_architecture` and `model_variant` settings
+- You can create a training-only config without specifying `model_path` (see `config/config_training_only.yaml`)
 
 ### Expected Outputs (Detect Mode)
 - **CSV Report**: `results/detection_report.csv`
@@ -173,14 +184,19 @@ The pipeline uses `config/config.yaml` for centralized configuration. Key sectio
 
 ### Config Sections
 - **system**: GPU device settings, logging configuration
-- **model**: Model weights path, confidence threshold
+- **model**: Model weights path (required for inference only), confidence threshold
 - **inference**: DPI settings, SAHI parameters
-- **training**: Hyperparameters, augmentation settings
+- **training**: Architecture selection, hyperparameters, augmentation settings
+
+**Note:** For training-only workflows, you can omit `model_path` from the config (see `config/config_training_only.yaml` example). Training uses pretrained weights specified by `model_architecture` and `model_variant`.
 
 ### Critical Parameters
 
 | Parameter | Default | Description | Tuning Guidance |
 |-----------|---------|-------------|-----------------|
+| `model_path` | `models/custom_model.pt` | Path to trained model | **Required for inference/detection only**. Omit for training mode. |
+| `model_architecture` | `yolov8` | YOLO architecture variant | Choose: `yolov8`, `yolo11`. Used for training only. |
+| `model_variant` | `nano` | Model size variant | Choose: `nano`, `small`, `medium`, `large`, `xlarge`. Speed vs accuracy tradeoff. |
 | `dpi` | 300 | Rasterization quality | Increase to 400 for detailed drawings, decrease to 200 for speed |
 | `slice_height/width` | 640 | SAHI tile dimensions | Match YOLO input size, don't change unless model changed |
 | `overlap_ratio` | 0.2 | Tile overlap percentage | Increase to 0.3 if seeing duplicates at boundaries |
@@ -238,8 +254,11 @@ project_root/
 
 ### Advanced Documentation
 For SAHI parameter optimization, see `docs/TUNING_GUIDE.md`
+- **🌟 No-Editing Config Guide** (`docs/NO_EDITING_CONFIG.md`): **One config for both modes - NO editing/uncommenting needed!** ⭐ Must-read!
+- **Unified Config Guide** (`docs/UNIFIED_CONFIG.md`): Detailed guide on using same config.yaml for training AND detection
 - **Multi-Architecture Guide** (`docs/MULTI_ARCHITECTURE_GUIDE.md`): Architecture selection, configuration methods, workflow examples, troubleshooting
 - **Model Organization** (`docs/MODEL_ORGANIZATION.md`): How models are organized, why pretrained models stay in models/ directory, cleanup guidelines
+- **Model Path Configuration** (`docs/MODEL_PATH_CONFIG.md`): When model_path is required (inference only) vs optional (training), config examples
 - **Logging Fix** (`docs/LOGGING_FIX.md`): Solution to triple logging output issue, idempotent setup_logging() implementation
 
 ### Pipeline Visualization

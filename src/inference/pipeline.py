@@ -43,7 +43,13 @@ class InferencePipeline:
 
         # Validate critical parameters
         if not self.model_path:
-            raise ValueError("model_path is required in config")
+            raise ValueError("model_path is required in config for inference mode")
+        if not os.path.exists(self.model_path):
+            raise FileNotFoundError(
+                f"Model path does not exist: {self.model_path}\n"
+                f"For training mode, use: python main.py train --data dataset/data.yaml\n"
+                f"For inference mode, ensure trained model exists at the specified path."
+            )
 
         # Color mapping for annotations
         self.color_mapping = {

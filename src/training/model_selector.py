@@ -56,8 +56,6 @@ class ModelArchitectureSelector:
 
         self.variant = variant
 
-        logger.info(f"Architecture selector initialized: {self.architecture}{self.variant}")
-
     def get_model_identifier(self) -> str:
         """Construct ultralytics model filename.
 
@@ -70,7 +68,6 @@ class ModelArchitectureSelector:
             'yolov8n.pt'
         """
         identifier = f"{self.architecture}{MODEL_VARIANTS[self.variant]}.pt"
-        logger.debug(f"Model identifier: {identifier}")
         return identifier
 
     def load_pretrained_model(self, weights_path: str | None = None) -> YOLO:
@@ -88,7 +85,6 @@ class ModelArchitectureSelector:
         try:
             if weights_path and os.path.exists(weights_path):
                 model = YOLO(weights_path)
-                logger.info(f"Loaded custom model: {weights_path}")
             else:
                 identifier = self.get_model_identifier()
                 # Check if model exists in models/ directory first
@@ -97,17 +93,14 @@ class ModelArchitectureSelector:
                 if os.path.exists(models_dir):
                     # Load from models/ directory
                     model = YOLO(models_dir)
-                    logger.info(f"Loaded {self.architecture} model from models/: {identifier}")
                 else:
                     # Download to models/ directory
                     os.makedirs('models', exist_ok=True)
-                    logger.info(f"Downloading {self.architecture} model: {identifier}")
                     # YOLO will download to current directory, then we move it
                     model = YOLO(identifier)
                     # Move downloaded model to models/ directory
                     if os.path.exists(identifier):
                         os.rename(identifier, models_dir)
-                        logger.info(f"Moved downloaded model to models/: {identifier}")
             return model
         except RuntimeError as e:
             logger.error(f"Failed to load model: {e}")
@@ -138,7 +131,6 @@ class ModelArchitectureSelector:
             'ultralytics_version_required': version
         }
 
-        logger.debug(f"Architecture info requested: {self.architecture}")
         return info
 
     def validate_compatibility(self, dataset_config: dict) -> bool:
