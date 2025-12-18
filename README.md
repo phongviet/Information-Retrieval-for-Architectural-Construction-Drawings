@@ -2,21 +2,22 @@
 
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
 
-A computer vision pipeline for detecting architectural elements (doors, windows, walls, objects) in floor plan PDFs using YOLOv8 object detection and SAHI slicing for large-format drawings.
+A computer vision pipeline for detecting architectural elements (doors, windows, walls, objects) in floor plan PDFs using YOLO and MMDetection frameworks with SAHI slicing for large-format drawings.
 
 ## Project Overview
 
-This project implements a modular computer vision pipeline for object detection in architectural drawings. It uses YOLOv8 for high-accuracy detection and SAHI (Slicing Aided Hyper Inference) to handle large A0/A1 format drawings without losing detail due to image size limitations.
+This project implements a modular computer vision pipeline for object detection in architectural drawings. It supports both YOLO (Ultralytics) and MMDetection frameworks, using SAHI (Slicing Aided Hyper Inference) to handle large A0/A1 format drawings without losing detail due to image size limitations.
 
 ### Key Features
+- **Multi-Framework Support**: Choose between YOLO (fast, simple) and MMDetection (higher accuracy, complex scenes)
 - **SAHI Slicing**: Processes large architectural drawings by dividing them into overlapping tiles, enabling detection on high-resolution scans without downscaling
 - **Unified Detection Workflow**: Single command produces both quantitative CSV statistics and visual annotated images with bounding boxes
-- **Model Training**: Train custom YOLO models on architectural datasets with checkpoint resume for interrupted training
+- **Model Training**: Train custom models on architectural datasets with checkpoint resume for interrupted training
 - **Memory-Safe Processing**: Optimized for 6GB GPUs with automatic downscaling for very large images
 - **Debug Mode**: SAHI tile visualization for parameter tuning and troubleshooting split objects
 - **Comprehensive Reporting**: CSV statistics, annotated images, and JSON metadata for complete documentation
-- **Multi-Architecture YOLO Support**: Easily switch between YOLOv8, YOLOv11, and future variants without code modifications
-- **Flexible Model Selection**: Choose from nano to xlarge variants optimizing speed/accuracy tradeoff
+- **Auto-Framework Detection**: Automatically detects which framework to use based on model file extension
+- **Flexible Model Selection**: Choose from nano to xlarge YOLO variants optimizing speed/accuracy tradeoff
 
 ### Supported Element Classes
 - `door` - Door elements in floor plans
@@ -71,29 +72,39 @@ This project implements a modular computer vision pipeline for object detection 
 
 ## Quickstart
 
-### Training Example
-Train a YOLO model on the architectural dataset:
+### Training Examples
+
+**YOLO Training (Default):**
 ```bash
 python main.py train --data data/floortest3.1.v1-data.yolov8/data.yaml --epochs 50 --batch-size 16
 ```
-This trains for 50 epochs with batch size 16. 
 
-**Resume Training from Checkpoint:**
-If training is interrupted, resume from the last checkpoint:
+**MMDetection Training:**
 ```bash
-python main.py train --data data/floortest3.1.v1-data.yolov8/data.yaml --resume runs/train/train6/weights/last.pt
+python main.py train --framework mmdetection \
+    --mmdet-config configs/mmdet/_base_/models/cascade_rcnn_r50_fpn.py \
+    --data data/architectural_coco/ \
+    --epochs 12
 ```
-Replace `train6` with your actual training run number. The checkpoint is automatically saved after each epoch in `runs/train/trainN/weights/last.pt`.
 
-### Detection Example
-Detect architectural elements in a PDF floor plan:
+### Detection Examples
+
+**Auto-Framework Detection (Recommended):**
 ```bash
 python main.py detect --input floor_plan.pdf --output results/
+# Framework automatically detected from model file (.pt = YOLO, .pth = MMDetection)
 ```
-Unified workflow produces CSV statistics, annotated images with bounding boxes, and metadata.
 
-> **💡 Pro Tip:** The same `config.yaml` works for BOTH training and detection - no editing needed!  
-> The system automatically uses the right settings based on the mode. See [`docs/NO_EDITING_CONFIG.md`](docs/NO_EDITING_CONFIG.md)
+**Explicit Framework Selection:**
+```bash
+# Force YOLO detection
+python main.py detect --framework yolo --input floor_plan.pdf --output results/
+
+# Force MMDetection detection
+python main.py detect --framework mmdetection --input floor_plan.pdf \
+    --mmdet-config configs/mmdet/_base_/models/cascade_rcnn_r50_fpn.py \
+    --output results/
+```
 
 ### Debug Mode Example
 Enable SAHI tile visualization for parameter tuning:

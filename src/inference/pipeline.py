@@ -8,6 +8,7 @@ from .memory_manager import MemoryManager
 from .sahi_detector import SAHIDetector
 from .utils import aggregate_detections
 from .debug_utils import save_stitched_debug, visualize_overlap_regions
+from .detector_factory import UnifiedDetectorFactory
 
 
 class InferencePipeline:
@@ -59,15 +60,6 @@ class InferencePipeline:
             'object': (0, 255, 255) # Yellow
         }
 
-        # Prepare SAHI config
-        self.sahi_config = {
-            'confidence': self.confidence_threshold,
-            'slice_height': self.slice_height,
-            'slice_width': self.slice_width,
-            'overlap_height_ratio': self.overlap_height_ratio,
-            'overlap_width_ratio': self.overlap_width_ratio
-        }
-
         # Slice params for debug
         self.slice_params = {
             'slice_height': self.slice_height,
@@ -80,6 +72,15 @@ class InferencePipeline:
         self.memory_manager = MemoryManager()
         self.processor = None
         self.detector = None
+
+        # Create detector using factory (supports both YOLO and MMDetection)
+        self.logger.info("Initializing detector...")
+        self.detector = UnifiedDetectorFactory.create_detector(self.model_path, self.config)
+
+        # Log framework being used
+        framework = getattr(self.detector, 'framework', 'unknown')
+        self.framework = framework
+        self.logger.info(f"Inference pipeline initialized with {framework} detector")
 
         self.logger.info(
             f"InferencePipeline initialized: output_dir={output_dir}, DPI={self.dpi}, "
@@ -96,7 +97,6 @@ class InferencePipeline:
             Dictionary with results per page.
         """
         self.processor = PDFProcessor(pdf_path)
-        self.detector = SAHIDetector(self.model_path, self.sahi_config)
 
         page_count = self.processor.get_page_count()
         results = {}
@@ -119,7 +119,7 @@ class InferencePipeline:
                     page_image = self.processor.rasterize_page(page_num, new_dpi)
                     h, w = page_image.shape[:2]  # Update dimensions
 
-                # SAHI detection
+                # Detection (works for both YOLO and MMDetection)
                 page_detections = self.detector.detect(page_image)
 
                 # NMS deduplication
@@ -143,8 +143,13 @@ class InferencePipeline:
                 output_path = os.path.join(self.output_dir, f'page_{page_num+1}_detections.jpg')
                 cv2.imwrite(output_path, img_copy, [cv2.IMWRITE_JPEG_QUALITY, 95])
 
-                # Store results
-                results[page_num+1] = {'detections': page_detections, 'annotated_image': output_path}
+                # Store results with framework info
+                results[page_num+1] = {
+                    'detections': page_detections,
+                    'annotated_image': output_path,
+                    'framework': self.framework,
+                    'page': page_num
+                }
                 successful_pages += 1
 
                 # Debug mode
@@ -159,7 +164,7 @@ class InferencePipeline:
 
             except Exception as e:
                 self.logger.exception(f"Error processing page {page_num+1}: {e}")
-                results[page_num+1] = {'error': str(e), 'annotated_image': None}
+                results[page_num+1] = {'error': str(e), 'annotated_image': None, 'framework': self.framework}
 
         self.logger.info(f"PDF processing complete: {successful_pages}/{page_count} pages processed successfully, annotated images saved to {self.output_dir}")
 

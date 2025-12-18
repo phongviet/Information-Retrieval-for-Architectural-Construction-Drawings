@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-12-11T15:53:16.216222",
+  "timestamp": "2025-12-17T09:15:34.719843",
   "input_pdf": "data/test_data/Lot 1840 Working Drawing Rev-3.pdf",
   "configuration": {
     "system": {
@@ -8,7 +8,7 @@
       "log_level": "INFO"
     },
     "model": {
-      "model_path": "runs/train/train3/weights/best.pt",
+      "model_path": "models/bestYOLOv11/weights/best.pt",
       "confidence_threshold": 0.5
     },
     "inference": {
@@ -32,8 +32,8 @@
       },
       "augmentation": {
         "hsv_h": 0.015,
-        "hsv_s": 0.7,
-        "hsv_v": 0.4,
+        "hsv_s": 0.0,
+        "hsv_v": 0.1,
         "degrees": 0.0,
         "translate": 0.1,
         "scale": 0.5,
@@ -41,7 +41,7 @@
         "perspective": 0.0,
         "flipud": 0.0,
         "fliplr": 0.5,
-        "mosaic": 1.0,
+        "mosaic": 0.0,
         "mixup": 0.0
       }
     }
@@ -49,16 +49,16 @@
   "detection_summary": {
     "total_pages": 14,
     "class_counts": {
-      "wall": 367,
-      "door": 23,
-      "window": 41
+      "wall": 344,
+      "door": 27,
+      "window": 46
     },
     "error_pages": 0
   },
   "output_files": [],
   "model_architecture": {
-    "architecture": "yolo11",
-    "variant": "nano",
+    "architecture": "yolov8",
+    "variant": "unknown",
     "identifier": "unknown",
     "detected_from": "unknown"
   }

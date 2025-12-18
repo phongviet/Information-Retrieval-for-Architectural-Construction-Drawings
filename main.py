@@ -4,7 +4,7 @@ os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 
 import sys
 import logging
-from src.cli.parser import create_parser, validate_architecture_args
+from src.cli.parser import create_parser, validate_architecture_args, validate_framework_args
 from src.utils.validators import validate_environment, setup_logging
 from src.utils.config_loader import ConfigLoader
 from src.training.trainer import Trainer
@@ -28,45 +28,93 @@ def main():
         # Validate architecture arguments
         validate_architecture_args(args)
 
+        # Validate framework arguments
+        validate_framework_args(args)
+
         command = args.command
 
         # Pre-flight validation
         validate_environment()
-        logger.debug("Environment validation passed")
 
         # Load configuration
         config = ConfigLoader(args.config)
 
         if command == 'train':
-            # Training mode - implement three-tier override strategy
-            architecture = args.architecture if args.architecture else getattr(config, 'model_architecture', 'yolov8')
-            variant = args.variant if args.variant else getattr(config, 'model_variant', 'nano')
+            # Training mode - route based on framework
+            logger.info(f"Starting training with {args.framework} framework")
 
-            # Log architecture source
-            source = 'CLI override' if args.architecture else 'config.yaml'
-            logger.info(f"Training with: {architecture}{variant} (source: {source})")
+            if args.framework == 'yolo':
+                # YOLO training workflow
+                architecture = args.architecture if args.architecture else getattr(config, 'model_architecture', 'yolov8')
+                variant = args.variant if args.variant else getattr(config, 'model_variant', 'nano')
 
-            trainer = Trainer(config, architecture, variant)
-            resume_checkpoint = args.resume if hasattr(args, 'resume') else None
-            trainer.train(args.data, epochs=args.epochs, batch_size=args.batch_size, resume=resume_checkpoint)
-            logger.info("Training mode complete")
+                # Log architecture source
+                source = 'CLI override' if args.architecture else 'config.yaml'
+                logger.info(f"Training with: {architecture}{variant} (source: {source})")
+
+                trainer = Trainer(config, architecture, variant)
+                resume_checkpoint = args.resume if hasattr(args, 'resume') else None
+                trainer.train(args.data, epochs=args.epochs, batch_size=args.batch_size, resume=resume_checkpoint)
+
+                logger.info("YOLO training complete")
+
+            elif args.framework == 'mmdetection':
+                # MMDetection training workflow
+                from src.training.mmdet_trainer import MMDetectionTrainer
+
+                trainer = MMDetectionTrainer(config, args.mmdet_config)
+
+                # Apply pretrained checkpoint if specified
+                if args.pretrained:
+                    trainer.resume_from_checkpoint(args.pretrained)
+
+                # Train
+                checkpoint_path = trainer.train()
+
+                # Standardize model
+                standardized_path = trainer.standardize_model()
+
+                # Generate report
+                report_path = os.path.join(trainer.cfg.work_dir, 'training_report.txt')
+                trainer.generate_training_report(report_path)
+
+                logger.info(f"MMDetection training complete: {standardized_path}")
+
+            else:
+                raise ValueError(f"Unknown framework: {args.framework}")
 
         elif command == 'detect':
-            # Detection mode
-            if args.model:
-                config.model['model_path'] = args.model
-            elif not config.model.get('model_path'):
-                # Default to models/custom_model.pt if not specified
-                config.model['model_path'] = 'models/custom_model.pt'
-                logger.info("No model_path specified, using default: models/custom_model.pt")
+            # Detection mode - auto-detect framework or use specified
+            model_path = args.model if args.model else config.model.get('model_path', 'models/custom_model.pt')
 
-            # Merge config sections for pipeline (flatten nested structure)
-            pipeline_config = {
-                **config.model,
-                **config.inference,
-                'debug_mode': args.debug if hasattr(args, 'debug') else False
-            }
-            pipeline = InferencePipeline(pipeline_config, output_dir=args.output)
+            # Auto-detect framework if not specified
+            if not args.framework:
+                from src.inference.detector_factory import UnifiedDetectorFactory
+                detected_framework = UnifiedDetectorFactory.detect_framework(model_path)
+                logger.info(f"Auto-detected framework: {detected_framework}")
+                framework = detected_framework
+            else:
+                framework = args.framework
+                logger.info(f"Using specified framework: {framework}")
+
+            # Create inference pipeline (now framework-agnostic)
+            pipeline = InferencePipeline(
+                config=config,
+                model_path=model_path,
+                output_dir=args.output,
+                framework=framework,
+                mmdet_config=args.mmdet_config if hasattr(args, 'mmdet_config') else None
+            )
+
+            # Verify detected framework matches specified (if both provided)
+            if args.framework and pipeline.framework != args.framework:
+                logger.warning(
+                    f"Specified framework '{args.framework}' differs from "
+                    f"detected framework '{pipeline.framework}'. Using detected framework."
+                )
+
+            # Process PDF
+            logger.info(f"Processing PDF with {pipeline.framework} model")
             results = pipeline.process_pdf(args.input)
 
             # Generate statistics

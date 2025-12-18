@@ -4,7 +4,7 @@ system:
   log_level: "INFO"  # Logging verbosity level (DEBUG, INFO, WARNING, ERROR)
 
 model:
-  model_path: "runs/train/train3/weights/best.pt"  # Path to trained model (used for detection only, ignored during training)
+  model_path: "models/bestYOLOv11/weights/best.pt"  # Path to trained model (used for detection only, ignored during training)
   # Training mode: Ignores this, uses model_architecture + model_variant below
   # Detection mode: Uses this path (or defaults to models/custom_model.pt if not found)
   # CLI override: python main.py detect --model path/to/model.pt --input file.pdf
@@ -30,8 +30,8 @@ training:
     device: "0"  # GPU device selection ('0' for first GPU, 'cpu' for CPU)
   augmentation:
     hsv_h: 0.015  # Hue adjustment range (0.0-1.0)
-    hsv_s: 0.7  # Saturation adjustment range (0.0-1.0)
-    hsv_v: 0.4  # Value/brightness adjustment range (0.0-1.0)
+    hsv_s: 0.0  # CHANGED (Assuming B&W or strict layer colors)
+    hsv_v: 0.1  # CHANGED (Keep brightness relatively stable)
     degrees: 0.0  # Rotation range in degrees
     translate: 0.1  # Translation range (0.0-1.0)
     scale: 0.5  # Scaling range (0.0-1.0)
@@ -39,5 +39,5 @@ training:
     perspective: 0.0  # Perspective distortion range (0.0-1.0)
     flipud: 0.0  # Vertical flip probability (0.0-1.0)
     fliplr: 0.5  # Horizontal flip probability (0.0-1.0)
-    mosaic: 1.0  # Mosaic augmentation probability (0.0-1.0)
+    mosaic: 0.0  # Mosaic augmentation probability (0.0-1.0)
     mixup: 0.0  # Mixup augmentation probability (0.0-1.0)

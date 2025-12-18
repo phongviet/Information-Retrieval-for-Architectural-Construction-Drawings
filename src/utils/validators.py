@@ -4,10 +4,11 @@ import torch
 from .config_loader import ConfigLoader
 
 def setup_logging():
-    """Configure dual-channel logging: console INFO, file DEBUG.
+    """Configure dual-channel logging: console INFO, file INFO.
 
     This function is idempotent - safe to call multiple times.
     Only configures logging once, subsequent calls are no-ops.
+    Suppresses DEBUG messages from third-party libraries.
     """
     logger = logging.getLogger()
 
@@ -15,7 +16,8 @@ def setup_logging():
     if logger.hasHandlers():
         return
 
-    logger.setLevel(logging.DEBUG)
+    # Set root logger to INFO to suppress DEBUG from all libraries
+    logger.setLevel(logging.INFO)
 
     # Formatter
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(module)s - %(message)s')
@@ -26,11 +28,20 @@ def setup_logging():
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
 
-    # File handler (DEBUG and above)
+    # File handler (INFO and above) - changed from DEBUG
     file_handler = logging.FileHandler('processing.log')
-    file_handler.setLevel(logging.DEBUG)
+    file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
+
+    # Suppress noisy third-party library loggers
+    logging.getLogger('matplotlib').setLevel(logging.WARNING)
+    logging.getLogger('PIL').setLevel(logging.WARNING)
+    logging.getLogger('urllib3').setLevel(logging.WARNING)
+    logging.getLogger('connectionpool').setLevel(logging.WARNING)
+    logging.getLogger('charset_normalizer').setLevel(logging.WARNING)
+    logging.getLogger('font_manager').setLevel(logging.WARNING)
+    logging.getLogger('ultralytics').setLevel(logging.INFO)  # Keep ultralytics at INFO
 
 def validate_environment():
     """
@@ -70,7 +81,6 @@ def validate_environment():
     # 3. Validate configuration parameters
     try:
         config_loader = ConfigLoader(config_path)
-        logger.debug(f"Configuration loaded: system={config_loader.system}, model={config_loader.model}, inference={config_loader.inference}")
         logger.info("Configuration parameters validated")
     except (ValueError, FileNotFoundError) as e:
         raise RuntimeError(f"Configuration validation failed during pre-flight check: {e}")
@@ -81,5 +91,4 @@ def validate_environment():
         if not os.access(dir_path, os.W_OK):
             raise PermissionError(f"No write permission for {dir_path}. Check directory permissions or run with appropriate user privileges")
 
-    logger.debug("Write permissions verified for output directories")
     logger.info("Pre-flight environment validation completed successfully")
